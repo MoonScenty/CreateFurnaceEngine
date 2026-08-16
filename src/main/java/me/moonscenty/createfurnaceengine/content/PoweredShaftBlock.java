@@ -1,0 +1,52 @@
+package me.moonscenty.createfurnaceengine.content;
+
+import com.simibubi.create.AllBlocks;
+import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
+import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
+import com.simibubi.create.foundation.block.IBE;
+import me.moonscenty.createfurnaceengine.registry.ModBlockEntityTypes;
+import me.moonscenty.createfurnaceengine.registry.ModBlocks;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+
+public class PoweredShaftBlock extends RotatedPillarKineticBlock implements IBE<PoweredShaftBlockEntity> {
+    public PoweredShaftBlock(Properties properties) { super(properties); }
+    @Override public Class<PoweredShaftBlockEntity> getBlockEntityClass() { return PoweredShaftBlockEntity.class; }
+    @Override public BlockEntityType<? extends PoweredShaftBlockEntity> getBlockEntityType() { return ModBlockEntityTypes.POWERED_SHAFT.get(); }
+    @Override public RenderShape getRenderShape(BlockState state) { return RenderShape.ENTITYBLOCK_ANIMATED; }
+    @Override public Direction.Axis getRotationAxis(BlockState state) { return state.getValue(AXIS); }
+    @Override public boolean hasShaftTowards(LevelReader level, BlockPos pos, BlockState state, Direction face) { return face.getAxis() == getRotationAxis(state); }
+
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (!stillValid(state, level, pos)) level.setBlock(pos, getUnpoweredEquivalent(state), 3);
+    }
+
+    @Override public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) { return stillValid(state, level, pos); }
+
+    public static boolean stillValid(BlockState state, LevelReader level, BlockPos pos) {
+        for (Direction direction : Direction.values()) {
+            if (direction.getAxis() == state.getValue(AXIS)) continue;
+            BlockPos enginePos = pos.relative(direction, 2);
+            BlockState engine = level.getBlockState(enginePos);
+            if (engine.getBlock() instanceof FurnaceEngineBlock
+                && FurnaceEngineBlock.getShaftPos(engine, enginePos).equals(pos)
+                && FurnaceEngineBlock.isShaftValid(engine, state)) return true;
+        }
+        return false;
+    }
+
+    public static BlockState getEquivalent(BlockState state) {
+        return ModBlocks.POWERED_SHAFT.get().defaultBlockState().setValue(AXIS, state.getValue(ShaftBlock.AXIS));
+    }
+
+    public static BlockState getUnpoweredEquivalent(BlockState state) {
+        return AllBlocks.SHAFT.getDefaultState().setValue(ShaftBlock.AXIS, state.getValue(AXIS));
+    }
+}

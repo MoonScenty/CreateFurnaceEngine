@@ -1,0 +1,13 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "pattern": ["PPB", "PCI", "PPB"],
+  "key": {
+    "P": { "tag": "c:plates/brass" },
+    "B": { "tag": "c:ingots/brass" },
+    "C": { "item": "create:brass_casing" },
+    "I": { "item": "minecraft:piston" }
+  },
+  "result": { "count": 1, "id": "createfurnaceengine:furnace_engine" }
+}
