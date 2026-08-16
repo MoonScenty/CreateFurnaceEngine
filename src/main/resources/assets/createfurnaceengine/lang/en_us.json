@@ -1,0 +1,13 @@
+{
+  "itemGroup.createfurnaceengine": "Example Mod Tab",
+  "block.createfurnaceengine.example_block": "Example Block",
+  "item.createfurnaceengine.example_item": "Example Item",
+
+  "createfurnaceengine.configuration.title": "Create Furnace Engine Configs",
+  "createfurnaceengine.configuration.section.createfurnaceengine.common.toml": "Create Furnace Engine Configs",
+  "createfurnaceengine.configuration.section.createfurnaceengine.common.toml.title": "Create Furnace Engine Configs",
+  "createfurnaceengine.configuration.items": "Item List",
+  "createfurnaceengine.configuration.logDirtBlock": "Log Dirt Block",
+  "createfurnaceengine.configuration.magicNumberIntroduction": "Magic Number Text",
+  "createfurnaceengine.configuration.magicNumber": "Magic Number"
+}
