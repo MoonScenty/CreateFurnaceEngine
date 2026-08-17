@@ -83,7 +83,7 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
         if (movementDirection != null && movementDirection.get() == RotationDirection.COUNTER_CLOCKWISE)
             direction *= -1;
         shaft.update(worldPosition, active ? direction * currentRpm : 0,
-            active ? currentRpm * suPerRpm : 0);
+            active ? suPerRpm : 0);
     }
 
     @Override
