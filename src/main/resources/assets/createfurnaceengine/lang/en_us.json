@@ -1,3 +1,21 @@
 {
-  "block.createfurnaceengine.furnace_engine": "Furnace Engine"
+  "block.createfurnaceengine.furnace_engine": "Furnace Engine",
+  "createfurnaceengine.ponder.furnace_engine_placement.header": "Installing a Furnace Engine",
+  "createfurnaceengine.ponder.furnace_engine_placement.text_1": "Furnace Engines use a running Furnace, Blast Furnace, or Smoker as their heat source",
+  "createfurnaceengine.ponder.furnace_engine_placement.text_2": "Attach the Engine to a side or the top of the furnace",
+  "createfurnaceengine.ponder.furnace_engine_placement.text_3": "The front face is reserved for accessing the furnace and cannot hold an Engine",
+  "createfurnaceengine.ponder.furnace_engine_placement.text_4": "Only one Furnace Engine can be attached to each furnace",
+  "createfurnaceengine.ponder.furnace_engine_shaft.header": "Connecting the Kinetic Output",
+  "createfurnaceengine.ponder.furnace_engine_shaft.text_1": "The Engine leaves one empty block between its Head and the output Shaft",
+  "createfurnaceengine.ponder.furnace_engine_shaft.text_2": "Hold a Shaft and right-click the Engine to use its placement guide",
+  "createfurnaceengine.ponder.furnace_engine_shaft.text_3": "The Shaft axis must be perpendicular to the direction in which the Engine extends",
+  "createfurnaceengine.ponder.furnace_engine_shaft.text_4": "Wear Engineer's Goggles and scroll the value box to choose the rotation direction",
+  "createfurnaceengine.ponder.furnace_engine_shaft.text_5": "The Shaft and Crank reverse together",
+  "createfurnaceengine.ponder.furnace_engine_operation.header": "Power, Warm-up and Heat Sinks",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_1": "The Engine remains stopped while the furnace is idle",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_2": "When the furnace starts, the Engine begins at 1 RPM",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_3": "It gains 1 RPM every 5 ticks until reaching the configured target RPM",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_4": "Stress capacity scales with the current speed: RPM multiplied by SU per RPM",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_5": "An adjacent configured Heat Sink switches the Engine to its Heat Sink RPM and SU/RPM settings",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_6": "By default, any Copper Block touching one of the furnace's six faces is a Heat Sink"
 }

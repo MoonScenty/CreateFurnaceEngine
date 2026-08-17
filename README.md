@@ -103,4 +103,4 @@ Furnace Engine의 Head 및 Crank 모델과 텍스처는 Create 6.0.1 자산을 �
 
 ## 라이선스
 
-이 프로젝트의 라이선스는 `All Rights Reserved`입니다. 포함된 Create 파생 자산에는 원본 Create 프로젝트의 MIT 라이선스가 적용됩니다.
+이 프로젝트는 MIT License로 배포됩니다. 포함된 Create 파생 자산에도 원본 Create 프로젝트의 MIT License가 적용됩니다.
