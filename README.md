@@ -8,12 +8,12 @@ Minecraft 1.21.1용 Create 애드온입니다. Create 구버전의 Furnace Engin
 
 - Minecraft 1.21.1
 - NeoForge 21.1.248 이상
-- Create 6.0.1
+- Create 6.0.1 이상 6.1.0 이하
 
 ## 설치
 
 1. Minecraft 1.21.1용 NeoForge를 설치합니다.
-2. Create 6.0.1과 이 모드의 JAR 파일을 `mods` 폴더에 넣습니다.
+2. Create 6.0.1 이상 6.1.0 이하 버전과 이 모드의 JAR 파일을 `mods` 폴더에 넣습니다.
 3. 게임을 실행합니다.
 
 ## 사용 방법
