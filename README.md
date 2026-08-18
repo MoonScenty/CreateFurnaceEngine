@@ -2,7 +2,7 @@
 
 Minecraft 1.21.1용 Create 애드온입니다. Create 구버전의 Furnace Engine을 Create 6.0.1 환경에 맞춰 복원합니다.
 
-증기 보일러 대신 작동 중인 화로를 열원으로 사용하며, Create Steam Engine 방식의 헤드·크랭크 애니메이션과 Shaft 출력을 제공합니다.
+증기 보일러 대신 작동 중인 화로를 열원으로 사용하며, Create Steam Engine 방식의 헤드·크랭크 애니메이션과 Flywheel 출력을 제공합니다.
 
 ## 요구 사항
 
@@ -19,24 +19,26 @@ Minecraft 1.21.1용 Create 애드온입니다. Create 구버전의 Furnace Engin
 ## 사용 방법
 
 1. 화로, 용광로 또는 훈연기의 옆면에 Furnace Engine을 설치합니다.
-2. 엔진에서 바깥쪽으로 두 블록 떨어진 위치에 Create Shaft를 설치합니다.
-3. Shaft를 든 채 엔진을 바라보면 Steam Engine과 같은 설치 가이드가 표시됩니다.
+2. 엔진에서 바깥쪽으로 두 블록 떨어진 위치에 Create Flywheel을 설치합니다.
+3. Flywheel을 든 채 엔진을 바라보면 Steam Engine과 같은 설치 가이드가 표시됩니다.
 4. 화로가 연료를 소비하며 작동하면 엔진이 동력을 생산합니다.
 
 ```text
-[Furnace] [Furnace Engine] [빈 공간] [Shaft]
+[Furnace] [Furnace Engine] [빈 공간] [Flywheel]
 ```
 
 ### 설치 제한
 
 - 화로 하나에는 Furnace Engine을 하나만 연결할 수 있습니다.
 - 화로의 전면에는 엔진을 설치할 수 없습니다.
-- Shaft의 축은 엔진 진행 방향과 나란할 수 없습니다.
+- Flywheel의 축은 엔진 진행 방향과 나란할 수 없으며, 세로로 세울 수 없습니다.
+- 엔진은 화로의 옆면에만 설치할 수 있습니다. 윗면과 아랫면은 지원하지 않습니다.
 
 ## 기능
 
 - Create Steam Engine 기반의 Head·Piston·Linkage·Crank 애니메이션
-- Shaft 설치 가이드
+- Flywheel 설치 가이드
+- 크랭크 반대편으로만 동력 출력
 - 고글과 마우스 휠을 이용한 회전 방향 설정
 - 화로 작동 상태에 따른 자동 시동 및 정지
 - 점진적인 RPM 워밍업

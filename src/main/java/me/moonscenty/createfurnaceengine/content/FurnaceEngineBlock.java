@@ -6,12 +6,12 @@ import java.util.function.Predicate;
 
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.AllBlocks;
-import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.utility.BlockHelper;
 import me.moonscenty.createfurnaceengine.registry.ModBlockEntityTypes;
 import me.moonscenty.createfurnaceengine.registry.ModBlocks;
+import net.createmod.catnip.math.VoxelShaper;
 import net.createmod.catnip.placement.IPlacementHelper;
 import net.createmod.catnip.placement.PlacementHelpers;
 import net.createmod.catnip.placement.PlacementOffset;
@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -104,9 +105,7 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
         BlockPos outputPos = getOutputPos(state, pos);
         BlockState output = level.getBlockState(outputPos);
         if (!isOutputValid(state, output)) return;
-        if (AllBlocks.SHAFT.has(output))
-            level.setBlock(outputPos, PoweredShaftBlock.getEquivalent(output), 3);
-        else if (AllBlocks.FLYWHEEL.has(output))
+        if (AllBlocks.FLYWHEEL.has(output))
             level.setBlock(outputPos, PoweredFlywheelBlock.getEquivalent(output), 3);
     }
 
@@ -122,12 +121,28 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
         IBE.onRemove(state, level, pos, replacement);
     }
 
+    // Traced from block/furnace_engine/head.json and clipped to the block. That model is authored
+    // upright for the FLOOR/NORTH variant, so these boxes carry the x:90 the blockstate applies to
+    // lay it on a wall facing north: (x, y, z) becomes (x, z, 16 - y).
+    //
+    // The reference is deliberately a horizontal facing rather than the upright model. Laying an
+    // upright shape down leaves four equally valid rolls to land on, and picking the wrong one
+    // mirrors the outline against a head that sits off the block axis. Between horizontal facings
+    // there is only a rotation about Y, so no such choice exists.
+    private static final VoxelShaper SHAPE = VoxelShaper.forHorizontal(Shapes.or(
+        Block.box(5, 1, 13, 16, 15, 16),  // mounting plate, flat against the furnace
+        Block.box(7, 3, 1, 16, 13, 13),   // body, reaching out towards the flywheel
+        Block.box(5, 4, 3, 7, 12, 11)),   // side plate
+        Direction.NORTH);
+
     @Override public VoxelShape getShape(BlockState state, net.minecraft.world.level.BlockGetter level,
         BlockPos pos, CollisionContext context) {
-        AttachFace face = state.getValue(FACE); Direction direction = state.getValue(FACING);
-        return face == AttachFace.CEILING ? AllShapes.STEAM_ENGINE_CEILING.get(direction.getAxis())
-            : face == AttachFace.FLOOR ? AllShapes.STEAM_ENGINE.get(direction.getAxis())
-            : AllShapes.STEAM_ENGINE_WALL.get(direction);
+        // FLOOR and CEILING states never survive placement, but they still exist in the state
+        // definition and the registry bakes a shape for every one of them on freeze. Their
+        // connected direction is UP or DOWN, which the horizontal shaper has no entry for, so
+        // fall back to the facing itself rather than handing back a null shape.
+        Direction facing = getFacing(state);
+        return SHAPE.get(facing.getAxis().isHorizontal() ? facing : state.getValue(FACING));
     }
 
     // Only the furnace's four side faces are valid. FLOOR would sit the engine on top of the
@@ -141,22 +156,17 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
     public static BlockPos getFurnacePos(BlockState state, BlockPos pos) { return pos.relative(getFacing(state).getOpposite()); }
     public static BlockPos getOutputPos(BlockState state, BlockPos pos) { return pos.relative(getFacing(state), 2); }
 
-    public static boolean isShaft(BlockState state) {
-        return AllBlocks.SHAFT.has(state) || state.is(ModBlocks.POWERED_SHAFT.get());
-    }
-
     public static boolean isFlywheel(BlockState state) {
         return AllBlocks.FLYWHEEL.has(state) || state.is(ModBlocks.POWERED_FLYWHEEL.get());
     }
 
-    // The output axis may never line up with the direction the engine extends in. A Flywheel is
-    // held to the stricter rule of staying upright: standing it on a vertical axis puts the wheel
-    // in the plane the crank swings through, and the two end up inside each other.
+    // A Flywheel is the only accepted output. Its axis may neither line up with the direction the
+    // engine extends in, nor stand upright: either puts the wheel in the plane the crank swings
+    // through, and the two end up inside each other.
     public static boolean isOutputValid(BlockState engine, BlockState output) {
-        if (!isShaft(output) && !isFlywheel(output)) return false;
+        if (!isFlywheel(output)) return false;
         Direction.Axis outputAxis = output.getValue(BlockStateProperties.AXIS);
-        if (outputAxis == getFacing(engine).getAxis()) return false;
-        return !isFlywheel(output) || outputAxis != Direction.Axis.Y;
+        return outputAxis != getFacing(engine).getAxis() && outputAxis != Direction.Axis.Y;
     }
 
     // Shared by both powered blocks to decide whether they should stay powered.
@@ -203,7 +213,7 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
 
     private static class PlacementHelper implements IPlacementHelper {
         @Override public Predicate<ItemStack> getItemPredicate() {
-            return stack -> AllBlocks.SHAFT.isIn(stack) || AllBlocks.FLYWHEEL.isIn(stack);
+            return AllBlocks.FLYWHEEL::isIn;
         }
         @Override public Predicate<BlockState> getStatePredicate() {
             return state -> state.getBlock() instanceof FurnaceEngineBlock;
@@ -214,8 +224,7 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
             BlockPos outputPos = getOutputPos(state, pos);
             if (!level.getBlockState(outputPos).canBeReplaced()) return PlacementOffset.fail();
 
-            boolean flywheel = AllBlocks.FLYWHEEL.isIn(heldOutput(player));
-            BlockState ghost = flywheel ? AllBlocks.FLYWHEEL.getDefaultState() : AllBlocks.SHAFT.getDefaultState();
+            BlockState ghost = AllBlocks.FLYWHEEL.getDefaultState();
 
             Direction.Axis axis = null;
             for (Direction direction : Direction.orderedByNearest(player)) {
@@ -228,16 +237,9 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
 
             Direction.Axis placedAxis = axis;
             BlockState placedState = level.isClientSide ? ghost
-                : (flywheel ? ModBlocks.POWERED_FLYWHEEL.get().defaultBlockState()
-                            : ModBlocks.POWERED_SHAFT.get().defaultBlockState());
+                : ModBlocks.POWERED_FLYWHEEL.get().defaultBlockState();
             return PlacementOffset.success(outputPos, placed -> BlockHelper.copyProperties(placed, placedState)
                 .setValue(BlockStateProperties.AXIS, placedAxis));
-        }
-
-        // getOffset has no access to the stack, so resolve which of the two items is held.
-        private static ItemStack heldOutput(Player player) {
-            ItemStack main = player.getMainHandItem();
-            return AllBlocks.SHAFT.isIn(main) || AllBlocks.FLYWHEEL.isIn(main) ? main : player.getOffhandItem();
         }
     }
 

@@ -6,7 +6,6 @@ import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity.RotationDirection;
-import com.simibubi.create.content.kinetics.steamEngine.SteamEngineValueBox;
 import me.moonscenty.createfurnaceengine.Config;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.utility.CreateLang;
@@ -44,7 +43,7 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
     @Override public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         movementDirection = new ScrollOptionBehaviour<>(RotationDirection.class,
             CreateLang.translateDirect("contraptions.windmill.rotation_direction"), this,
-            new SteamEngineValueBox());
+            new FurnaceEngineValueBox());
         movementDirection.onlyActiveWhen(() -> {
             PoweredBlockEntity output = getOutput();
             return output == null || !output.hasSource();

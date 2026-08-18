@@ -13,7 +13,7 @@ public class FurnaceEnginePonderPlugin implements PonderPlugin {
     public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         helper.forComponents(ModBlocks.FURNACE_ENGINE.getId())
             .addStoryBoard("furnace_engine", FurnaceEngineScenes::placement)
-            .addStoryBoard("furnace_engine", FurnaceEngineScenes::shaftAndDirection)
+            .addStoryBoard("furnace_engine", FurnaceEngineScenes::outputAndDirection)
             .addStoryBoard("furnace_engine", FurnaceEngineScenes::operationAndHeatSink);
     }
 }
