@@ -31,15 +31,7 @@ public class PoweredShaftBlock extends RotatedPillarKineticBlock implements IBE<
     @Override public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) { return stillValid(state, level, pos); }
 
     public static boolean stillValid(BlockState state, LevelReader level, BlockPos pos) {
-        for (Direction direction : Direction.values()) {
-            if (direction.getAxis() == state.getValue(AXIS)) continue;
-            BlockPos enginePos = pos.relative(direction, 2);
-            BlockState engine = level.getBlockState(enginePos);
-            if (engine.getBlock() instanceof FurnaceEngineBlock
-                && FurnaceEngineBlock.getShaftPos(engine, enginePos).equals(pos)
-                && FurnaceEngineBlock.isShaftValid(engine, state)) return true;
-        }
-        return false;
+        return FurnaceEngineBlock.isDrivenByEngine(state, level, pos);
     }
 
     public static BlockState getEquivalent(BlockState state) {

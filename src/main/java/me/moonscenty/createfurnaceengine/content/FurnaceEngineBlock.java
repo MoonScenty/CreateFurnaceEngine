@@ -8,7 +8,6 @@ import com.mojang.serialization.MapCodec;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
-import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
 import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.utility.BlockHelper;
 import me.moonscenty.createfurnaceengine.registry.ModBlockEntityTypes;
@@ -36,6 +35,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -58,6 +58,7 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
     }
 
     @Override public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+        if (!isHorizontallyAttached(state)) return false;
         BlockPos furnacePos = getFurnacePos(state, pos);
         BlockState furnace = level.getBlockState(furnacePos);
         return furnace.getBlock() instanceof AbstractFurnaceBlock
@@ -67,7 +68,7 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
 
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = super.getStateForPlacement(context);
-        if (state == null) return null;
+        if (state == null || !isHorizontallyAttached(state)) return null;
         BlockPos furnacePos = getFurnacePos(state, context.getClickedPos());
         BlockState furnace = context.getLevel().getBlockState(furnacePos);
         if (!(furnace.getBlock() instanceof AbstractFurnaceBlock)
@@ -95,21 +96,28 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
     }
 
     @Override public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
-        connectShaft(level, state, pos);
+        connectOutput(level, state, pos);
     }
 
-    static void connectShaft(Level level, BlockState state, BlockPos pos) {
-        BlockPos shaftPos = getShaftPos(state, pos);
-        BlockState shaft = level.getBlockState(shaftPos);
-        if (isShaftValid(state, shaft)) level.setBlock(shaftPos, PoweredShaftBlock.getEquivalent(shaft), 3);
+    // Swaps a plain Create Shaft or Flywheel in front of the engine for its powered counterpart.
+    static void connectOutput(Level level, BlockState state, BlockPos pos) {
+        BlockPos outputPos = getOutputPos(state, pos);
+        BlockState output = level.getBlockState(outputPos);
+        if (!isOutputValid(state, output)) return;
+        if (AllBlocks.SHAFT.has(output))
+            level.setBlock(outputPos, PoweredShaftBlock.getEquivalent(output), 3);
+        else if (AllBlocks.FLYWHEEL.has(output))
+            level.setBlock(outputPos, PoweredFlywheelBlock.getEquivalent(output), 3);
     }
 
     @Override public void onRemove(BlockState state, Level level, BlockPos pos, BlockState replacement, boolean moving) {
         if (!state.is(replacement.getBlock())) {
-            BlockPos shaftPos = getShaftPos(state, pos);
-            BlockState shaft = level.getBlockState(shaftPos);
-            if (shaft.is(ModBlocks.POWERED_SHAFT.get()))
-                level.setBlock(shaftPos, PoweredShaftBlock.getUnpoweredEquivalent(shaft), 3);
+            BlockPos outputPos = getOutputPos(state, pos);
+            BlockState output = level.getBlockState(outputPos);
+            if (output.is(ModBlocks.POWERED_SHAFT.get()))
+                level.setBlock(outputPos, PoweredShaftBlock.getUnpoweredEquivalent(output), 3);
+            else if (output.is(ModBlocks.POWERED_FLYWHEEL.get()))
+                level.setBlock(outputPos, PoweredFlywheelBlock.getUnpoweredEquivalent(output), 3);
         }
         IBE.onRemove(state, level, pos, replacement);
     }
@@ -122,12 +130,59 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
             : AllShapes.STEAM_ENGINE_WALL.get(direction);
     }
 
+    // Only the furnace's four side faces are valid. FLOOR would sit the engine on top of the
+    // furnace and CEILING would hang it underneath, both of which put the crank on an axis the
+    // linkage was never modelled for.
+    public static boolean isHorizontallyAttached(BlockState state) {
+        return state.getValue(FACE) == AttachFace.WALL;
+    }
+
     public static Direction getFacing(BlockState state) { return getConnectedDirection(state); }
     public static BlockPos getFurnacePos(BlockState state, BlockPos pos) { return pos.relative(getFacing(state).getOpposite()); }
-    public static BlockPos getShaftPos(BlockState state, BlockPos pos) { return pos.relative(getFacing(state), 2); }
-    public static boolean isShaftValid(BlockState engine, BlockState shaft) {
-        return (AllBlocks.SHAFT.has(shaft) || shaft.is(ModBlocks.POWERED_SHAFT.get()))
-            && shaft.getValue(ShaftBlock.AXIS) != getFacing(engine).getAxis();
+    public static BlockPos getOutputPos(BlockState state, BlockPos pos) { return pos.relative(getFacing(state), 2); }
+
+    public static boolean isShaft(BlockState state) {
+        return AllBlocks.SHAFT.has(state) || state.is(ModBlocks.POWERED_SHAFT.get());
+    }
+
+    public static boolean isFlywheel(BlockState state) {
+        return AllBlocks.FLYWHEEL.has(state) || state.is(ModBlocks.POWERED_FLYWHEEL.get());
+    }
+
+    // The output axis may never line up with the direction the engine extends in. A Flywheel is
+    // held to the stricter rule of staying upright: standing it on a vertical axis puts the wheel
+    // in the plane the crank swings through, and the two end up inside each other.
+    public static boolean isOutputValid(BlockState engine, BlockState output) {
+        if (!isShaft(output) && !isFlywheel(output)) return false;
+        Direction.Axis outputAxis = output.getValue(BlockStateProperties.AXIS);
+        if (outputAxis == getFacing(engine).getAxis()) return false;
+        return !isFlywheel(output) || outputAxis != Direction.Axis.Y;
+    }
+
+    // Shared by both powered blocks to decide whether they should stay powered.
+    public static boolean isDrivenByEngine(BlockState output, LevelReader level, BlockPos pos) {
+        return findEngine(output, level, pos) != null;
+    }
+
+    // The engine driving this output block, or null when nothing valid reaches it.
+    public static BlockState findEngine(BlockState output, LevelReader level, BlockPos pos) {
+        Direction.Axis outputAxis = output.getValue(BlockStateProperties.AXIS);
+        for (Direction direction : Direction.values()) {
+            if (direction.getAxis() == outputAxis) continue;
+            BlockPos enginePos = pos.relative(direction, 2);
+            BlockState engine = level.getBlockState(enginePos);
+            if (engine.getBlock() instanceof FurnaceEngineBlock
+                && getOutputPos(engine, enginePos).equals(pos)
+                && isOutputValid(engine, output)) return engine;
+        }
+        return null;
+    }
+
+    // The flank the crank swings over. The wheel is pushed clear of it and no kinetic output
+    // leaves that way, so both rules have to read this one answer or they disagree.
+    public static Direction getCrankSide(BlockState engine) {
+        Direction facing = getFacing(engine);
+        return facing.getAxis() == Direction.Axis.Y ? null : facing.getClockWise();
     }
 
     private static boolean hasOtherEngine(LevelReader level, BlockPos furnacePos, BlockPos currentPos) {
@@ -147,26 +202,42 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
     }
 
     private static class PlacementHelper implements IPlacementHelper {
-        @Override public Predicate<ItemStack> getItemPredicate() { return AllBlocks.SHAFT::isIn; }
+        @Override public Predicate<ItemStack> getItemPredicate() {
+            return stack -> AllBlocks.SHAFT.isIn(stack) || AllBlocks.FLYWHEEL.isIn(stack);
+        }
         @Override public Predicate<BlockState> getStatePredicate() {
             return state -> state.getBlock() instanceof FurnaceEngineBlock;
         }
 
         @Override public PlacementOffset getOffset(Player player, Level level, BlockState state,
             BlockPos pos, BlockHitResult hit) {
-            BlockPos shaftPos = getShaftPos(state, pos);
-            BlockState shaft = AllBlocks.SHAFT.getDefaultState();
-            for (Direction direction : Direction.orderedByNearest(player)) {
-                shaft = shaft.setValue(ShaftBlock.AXIS, direction.getAxis());
-                if (isShaftValid(state, shaft)) break;
-            }
-            if (!level.getBlockState(shaftPos).canBeReplaced()) return PlacementOffset.fail();
+            BlockPos outputPos = getOutputPos(state, pos);
+            if (!level.getBlockState(outputPos).canBeReplaced()) return PlacementOffset.fail();
 
-            Direction.Axis axis = shaft.getValue(ShaftBlock.AXIS);
-            return PlacementOffset.success(shaftPos, placed -> BlockHelper.copyProperties(placed,
-                (level.isClientSide ? AllBlocks.SHAFT.getDefaultState()
-                    : ModBlocks.POWERED_SHAFT.get().defaultBlockState()))
-                .setValue(PoweredShaftBlock.AXIS, axis));
+            boolean flywheel = AllBlocks.FLYWHEEL.isIn(heldOutput(player));
+            BlockState ghost = flywheel ? AllBlocks.FLYWHEEL.getDefaultState() : AllBlocks.SHAFT.getDefaultState();
+
+            Direction.Axis axis = null;
+            for (Direction direction : Direction.orderedByNearest(player)) {
+                if (isOutputValid(state, ghost.setValue(BlockStateProperties.AXIS, direction.getAxis()))) {
+                    axis = direction.getAxis();
+                    break;
+                }
+            }
+            if (axis == null) return PlacementOffset.fail();
+
+            Direction.Axis placedAxis = axis;
+            BlockState placedState = level.isClientSide ? ghost
+                : (flywheel ? ModBlocks.POWERED_FLYWHEEL.get().defaultBlockState()
+                            : ModBlocks.POWERED_SHAFT.get().defaultBlockState());
+            return PlacementOffset.success(outputPos, placed -> BlockHelper.copyProperties(placed, placedState)
+                .setValue(BlockStateProperties.AXIS, placedAxis));
+        }
+
+        // getOffset has no access to the stack, so resolve which of the two items is held.
+        private static ItemStack heldOutput(Player player) {
+            ItemStack main = player.getMainHandItem();
+            return AllBlocks.SHAFT.isIn(main) || AllBlocks.FLYWHEEL.isIn(main) ? main : player.getOffhandItem();
         }
     }
 

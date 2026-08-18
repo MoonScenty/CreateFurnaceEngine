@@ -2,7 +2,7 @@
   "block.createfurnaceengine.furnace_engine": "Furnace Engine",
   "createfurnaceengine.ponder.furnace_engine_placement.header": "Installing a Furnace Engine",
   "createfurnaceengine.ponder.furnace_engine_placement.text_1": "Furnace Engines use a running Furnace, Blast Furnace, or Smoker as their heat source",
-  "createfurnaceengine.ponder.furnace_engine_placement.text_2": "Attach the Engine to a side or the top of the furnace",
+  "createfurnaceengine.ponder.furnace_engine_placement.text_2": "Attach the Engine to one of the furnace's side faces",
   "createfurnaceengine.ponder.furnace_engine_placement.text_3": "The front face is reserved for accessing the furnace and cannot hold an Engine",
   "createfurnaceengine.ponder.furnace_engine_placement.text_4": "Only one Furnace Engine can be attached to each furnace",
   "createfurnaceengine.ponder.furnace_engine_shaft.header": "Connecting the Kinetic Output",
@@ -14,7 +14,7 @@
   "createfurnaceengine.ponder.furnace_engine_operation.header": "Power, Warm-up and Heat Sinks",
   "createfurnaceengine.ponder.furnace_engine_operation.text_1": "The Engine remains stopped while the furnace is idle",
   "createfurnaceengine.ponder.furnace_engine_operation.text_2": "When the furnace starts, the Engine begins at 1 RPM",
-  "createfurnaceengine.ponder.furnace_engine_operation.text_3": "It gains 1 RPM every 5 ticks until reaching the configured target RPM",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_3": "It climbs by about a twelfth of the target every 15 ticks, until the target RPM is reached",
   "createfurnaceengine.ponder.furnace_engine_operation.text_4": "Stress capacity scales with the current speed: RPM multiplied by SU per RPM",
   "createfurnaceengine.ponder.furnace_engine_operation.text_5": "An adjacent configured Heat Sink switches the Engine to its Heat Sink RPM and SU/RPM settings",
   "createfurnaceengine.ponder.furnace_engine_operation.text_6": "By default, any Copper Block touching one of the furnace's six faces is a Heat Sink"

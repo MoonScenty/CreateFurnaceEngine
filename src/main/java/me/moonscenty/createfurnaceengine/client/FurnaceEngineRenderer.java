@@ -7,7 +7,7 @@ import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRender
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import me.moonscenty.createfurnaceengine.content.FurnaceEngineBlock;
 import me.moonscenty.createfurnaceengine.content.FurnaceEngineBlockEntity;
-import me.moonscenty.createfurnaceengine.content.PoweredShaftBlockEntity;
+import me.moonscenty.createfurnaceengine.content.PoweredBlockEntity;
 import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
@@ -28,14 +28,14 @@ public class FurnaceEngineRenderer extends SafeBlockEntityRenderer<FurnaceEngine
         Direction facing = FurnaceEngineBlock.getFacing(state);
         VertexConsumer consumer = buffer.getBuffer(RenderType.solid());
 
-        PoweredShaftBlockEntity shaft = be.getShaft();
-        if (shaft == null) return;
+        PoweredBlockEntity output = be.getOutput();
+        if (output == null) return;
 
         Float targetAngle = be.getTargetAngle();
         if (targetAngle == null) return;
         float angle = targetAngle;
         boolean roll90 = facing.getAxis().isHorizontal()
-            && KineticBlockEntityRenderer.getRotationAxisOf(shaft) == Direction.Axis.Y;
+            && KineticBlockEntityRenderer.getRotationAxisOf(output) == Direction.Axis.Y;
         float sine = Mth.sin(angle);
         float piston = ((1 - sine) / 4) * 24 / 16f;
         transformed(ModPartialModels.ENGINE_PISTON, state, facing, roll90)

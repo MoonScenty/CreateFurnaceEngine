@@ -18,6 +18,7 @@ public final class ClientEvents {
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         ModPartialModels.init();
         event.registerBlockEntityRenderer(ModBlockEntityTypes.POWERED_SHAFT.get(), PoweredShaftRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntityTypes.POWERED_FLYWHEEL.get(), PoweredFlywheelRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntityTypes.FURNACE_ENGINE.get(), FurnaceEngineRenderer::new);
     }
 

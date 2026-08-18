@@ -2,6 +2,7 @@ package me.moonscenty.createfurnaceengine.registry;
 
 import me.moonscenty.createfurnaceengine.CreateFurnaceEngine;
 import me.moonscenty.createfurnaceengine.content.FurnaceEngineBlock;
+import me.moonscenty.createfurnaceengine.content.PoweredFlywheelBlock;
 import me.moonscenty.createfurnaceengine.content.PoweredShaftBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -16,6 +17,9 @@ public final class ModBlocks {
         FurnaceEngineBlock::new, BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<PoweredShaftBlock> POWERED_SHAFT = BLOCKS.register("powered_shaft",
         () -> new PoweredShaftBlock(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_YELLOW)
+            .strength(3).sound(SoundType.METAL).noOcclusion()));
+    public static final DeferredBlock<PoweredFlywheelBlock> POWERED_FLYWHEEL = BLOCKS.register("powered_flywheel",
+        () -> new PoweredFlywheelBlock(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_YELLOW)
             .strength(3).sound(SoundType.METAL).noOcclusion()));
 
     private ModBlocks() {}

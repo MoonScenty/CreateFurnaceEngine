@@ -2,7 +2,7 @@
   "block.createfurnaceengine.furnace_engine": "화로 엔진",
   "createfurnaceengine.ponder.furnace_engine_placement.header": "화로 엔진 설치하기",
   "createfurnaceengine.ponder.furnace_engine_placement.text_1": "화로 엔진은 작동 중인 화로, 용광로 또는 훈연기를 열원으로 사용합니다",
-  "createfurnaceengine.ponder.furnace_engine_placement.text_2": "엔진은 화로의 옆면이나 윗면에 설치할 수 있습니다",
+  "createfurnaceengine.ponder.furnace_engine_placement.text_2": "엔진은 화로의 옆면에만 설치할 수 있습니다",
   "createfurnaceengine.ponder.furnace_engine_placement.text_3": "화로를 사용해야 하는 전면에는 엔진을 설치할 수 없습니다",
   "createfurnaceengine.ponder.furnace_engine_placement.text_4": "화로 하나에는 화로 엔진 하나만 연결할 수 있습니다",
   "createfurnaceengine.ponder.furnace_engine_shaft.header": "회전 동력 출력 연결하기",
@@ -14,7 +14,7 @@
   "createfurnaceengine.ponder.furnace_engine_operation.header": "출력, 워밍업과 히트싱크",
   "createfurnaceengine.ponder.furnace_engine_operation.text_1": "화로가 꺼져 있으면 엔진도 정지합니다",
   "createfurnaceengine.ponder.furnace_engine_operation.text_2": "화로가 작동하면 엔진은 1 RPM으로 시동합니다",
-  "createfurnaceengine.ponder.furnace_engine_operation.text_3": "설정된 목표 RPM에 도달할 때까지 5틱마다 1 RPM씩 증가합니다",
+  "createfurnaceengine.ponder.furnace_engine_operation.text_3": "설정된 목표 RPM에 도달할 때까지 15틱마다 목표치의 약 1/12씩 증가합니다",
   "createfurnaceengine.ponder.furnace_engine_operation.text_4": "응력 용량은 현재 RPM과 RPM당 SU를 곱한 값입니다",
   "createfurnaceengine.ponder.furnace_engine_operation.text_5": "설정된 히트싱크가 인접하면 히트싱크용 RPM과 SU/RPM 설정으로 전환됩니다",
   "createfurnaceengine.ponder.furnace_engine_operation.text_6": "기본적으로 화로의 여섯 면 중 하나에 닿은 구리 블록을 히트싱크로 인식합니다"

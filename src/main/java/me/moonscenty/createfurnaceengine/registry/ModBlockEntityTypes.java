@@ -3,6 +3,7 @@ package me.moonscenty.createfurnaceengine.registry;
 import java.util.function.Supplier;
 import me.moonscenty.createfurnaceengine.CreateFurnaceEngine;
 import me.moonscenty.createfurnaceengine.content.FurnaceEngineBlockEntity;
+import me.moonscenty.createfurnaceengine.content.PoweredFlywheelBlockEntity;
 import me.moonscenty.createfurnaceengine.content.PoweredShaftBlockEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -15,6 +16,8 @@ public final class ModBlockEntityTypes {
         () -> BlockEntityType.Builder.of(FurnaceEngineBlockEntity::new, ModBlocks.FURNACE_ENGINE.get()).build(null));
     public static final Supplier<BlockEntityType<PoweredShaftBlockEntity>> POWERED_SHAFT = TYPES.register("powered_shaft",
         () -> BlockEntityType.Builder.of(PoweredShaftBlockEntity::new, ModBlocks.POWERED_SHAFT.get()).build(null));
+    public static final Supplier<BlockEntityType<PoweredFlywheelBlockEntity>> POWERED_FLYWHEEL = TYPES.register("powered_flywheel",
+        () -> BlockEntityType.Builder.of(PoweredFlywheelBlockEntity::new, ModBlocks.POWERED_FLYWHEEL.get()).build(null));
     private ModBlockEntityTypes() {}
     public static void register(IEventBus bus) { TYPES.register(bus); }
 }

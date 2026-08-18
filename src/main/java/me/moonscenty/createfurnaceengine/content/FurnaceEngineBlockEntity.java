@@ -24,9 +24,18 @@ import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation {
-    private WeakReference<PoweredShaftBlockEntity> target = new WeakReference<>(null);
+    // Every speed change makes Create tear the kinetic network down and rebuild it, which drags
+    // whatever is attached through zero twice. Each of those transitions adds 5 to that block's
+    // flicker tally, and only 1 point decays per tick; at 128 the block is destroyed outright.
+    // So the ramp is paced by tick budget, not by RPM: gaps must outlast the 10 points a step
+    // costs. Reaching the target in few, larger steps keeps the tally near zero.
+    private static final int WARMUP_INTERVAL = 15;
+    private static final int WARMUP_STEPS = 12;
+
+    private WeakReference<PoweredBlockEntity> target = new WeakReference<>(null);
     private ScrollOptionBehaviour<RotationDirection> movementDirection;
     private int currentRpm;
     private int warmupTicks;
@@ -37,8 +46,8 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
             CreateLang.translateDirect("contraptions.windmill.rotation_direction"), this,
             new SteamEngineValueBox());
         movementDirection.onlyActiveWhen(() -> {
-            PoweredShaftBlockEntity shaft = getShaft();
-            return shaft == null || !shaft.hasSource();
+            PoweredBlockEntity output = getOutput();
+            return output == null || !output.hasSource();
         });
         movementDirection.withCallback(value -> {
             if (level != null && !level.isClientSide) updateEngine(false);
@@ -53,9 +62,9 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
     }
 
     private void updateEngine(boolean advanceWarmup) {
-        FurnaceEngineBlock.connectShaft(level, getBlockState(), worldPosition);
-        PoweredShaftBlockEntity shaft = getShaft();
-        if (shaft == null) return;
+        FurnaceEngineBlock.connectOutput(level, getBlockState(), worldPosition);
+        PoweredBlockEntity output = getOutput();
+        if (output == null) return;
         BlockState furnace = level.getBlockState(FurnaceEngineBlock.getFurnacePos(getBlockState(), worldPosition));
         boolean active = furnace.hasProperty(AbstractFurnaceBlock.LIT) && furnace.getValue(AbstractFurnaceBlock.LIT);
         boolean hasHeatSink = hasHeatSink(FurnaceEngineBlock.getFurnacePos(getBlockState(), worldPosition));
@@ -69,20 +78,20 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
             warmupTicks = 0;
         } else {
             currentRpm = Math.min(currentRpm, rpm);
-            if (advanceWarmup && currentRpm < rpm && ++warmupTicks >= 5) {
-                currentRpm++;
+            if (advanceWarmup && currentRpm < rpm && ++warmupTicks >= WARMUP_INTERVAL) {
+                currentRpm = Math.min(rpm, currentRpm + Math.max(1, rpm / WARMUP_STEPS));
                 warmupTicks = 0;
             }
         }
         Direction facing = FurnaceEngineBlock.getFacing(getBlockState());
         if (facing.getAxis() == Axis.Y)
             facing = getBlockState().getValue(FurnaceEngineBlock.FACING);
-        Axis shaftAxis = shaft.getBlockState().getValue(PoweredShaftBlock.AXIS);
-        int direction = shaftAxis == Axis.Y ? 1 : (int) GeneratingKineticBlockEntity.convertToDirection(1, facing);
-        if (shaftAxis == Axis.Z) direction *= -1;
+        Axis outputAxis = output.getBlockState().getValue(BlockStateProperties.AXIS);
+        int direction = outputAxis == Axis.Y ? 1 : (int) GeneratingKineticBlockEntity.convertToDirection(1, facing);
+        if (outputAxis == Axis.Z) direction *= -1;
         if (movementDirection != null && movementDirection.get() == RotationDirection.COUNTER_CLOCKWISE)
             direction *= -1;
-        shaft.update(worldPosition, active ? direction * currentRpm : 0,
+        output.update(worldPosition, active ? direction * currentRpm : 0,
             active ? suPerRpm : 0);
     }
 
@@ -110,26 +119,26 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
     }
 
     public Float getTargetAngle() {
-        PoweredShaftBlockEntity shaft = getShaft();
-        if (shaft == null) return null;
+        PoweredBlockEntity output = getOutput();
+        if (output == null) return null;
 
         Direction facing = FurnaceEngineBlock.getFacing(getBlockState());
         Axis facingAxis = facing.getAxis();
-        Axis shaftAxis = KineticBlockEntityRenderer.getRotationAxisOf(shaft);
-        if (shaftAxis == facingAxis) return null;
+        Axis outputAxis = KineticBlockEntityRenderer.getRotationAxisOf(output);
+        if (outputAxis == facingAxis) return null;
 
-        float angle = KineticBlockEntityRenderer.getAngleForBe(shaft, shaft.getBlockPos(), shaftAxis);
-        if (shaftAxis.isHorizontal()
+        float angle = KineticBlockEntityRenderer.getAngleForBe(output, output.getBlockPos(), outputAxis);
+        if (outputAxis.isHorizontal()
             && (facingAxis == Axis.X ^ facing.getAxisDirection() == AxisDirection.POSITIVE)) angle *= -1;
-        if (shaftAxis == Axis.X && facing == Direction.DOWN) angle *= -1;
+        if (outputAxis == Axis.X && facing == Direction.DOWN) angle *= -1;
         return angle;
     }
 
-    public PoweredShaftBlockEntity getShaft() {
-        PoweredShaftBlockEntity cached = target.get();
+    public PoweredBlockEntity getOutput() {
+        PoweredBlockEntity cached = target.get();
         if (cached != null && !cached.isRemoved() && cached.canBePoweredBy(worldPosition)) return cached;
-        BlockEntity blockEntity = level.getBlockEntity(FurnaceEngineBlock.getShaftPos(getBlockState(), worldPosition));
-        if (blockEntity instanceof PoweredShaftBlockEntity powered && powered.canBePoweredBy(worldPosition)) {
+        BlockEntity blockEntity = level.getBlockEntity(FurnaceEngineBlock.getOutputPos(getBlockState(), worldPosition));
+        if (blockEntity instanceof PoweredBlockEntity powered && powered.canBePoweredBy(worldPosition)) {
             target = new WeakReference<>(powered);
             return powered;
         }
@@ -139,8 +148,8 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
 
     @Override
     public void remove() {
-        PoweredShaftBlockEntity shaft = target.get();
-        if (shaft != null) shaft.removePower(worldPosition);
+        PoweredBlockEntity output = target.get();
+        if (output != null) output.removePower(worldPosition);
         super.remove();
     }
 }
