@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Direction.AxisDirection;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 // Deliberately not a KineticBlockEntityRenderer: that one bails out whenever the Flywheel
@@ -62,16 +63,29 @@ public class PoweredFlywheelRenderer extends SafeBlockEntityRenderer<PoweredFlyw
     // is turned around. The wheel has to follow, or it lands on top of the crank instead of
     // leaving the half of the block that the crank reaches into.
     private static float clearanceSign(PoweredFlywheelBlockEntity be, Axis axis) {
-        BlockPos enginePos = be.getEnginePos();
-        if (enginePos == null || be.getLevel() == null) return 1;
-        BlockState engine = be.getLevel().getBlockState(enginePos);
-        if (!(engine.getBlock() instanceof FurnaceEngineBlock)) return 1;
+        Level level = be.getLevel();
+        if (level == null) return 1;
+        BlockState engine = drivingEngine(be, level);
+        if (engine == null) return 1;
 
         Direction crank = FurnaceEngineBlock.getCrankSide(engine);
         if (crank == null || crank.getAxis() != axis) return 1;
 
         Direction clear = crank.getOpposite();
         return clear.getAxisDirection() == AxisDirection.POSITIVE ? 1 : -1;
+    }
+
+    // The engine's claim is the authority on which engine drives this wheel, but it is only ever
+    // written server-side. Ponder runs entirely on the client, so there the claim is never set and
+    // the wheel would fall back to an unshifted position that parks it right on top of the crank.
+    // Reading the neighbourhood instead costs one lookup and answers in any level.
+    private static BlockState drivingEngine(PoweredFlywheelBlockEntity be, Level level) {
+        BlockPos enginePos = be.getEnginePos();
+        if (enginePos != null) {
+            BlockState claimed = level.getBlockState(enginePos);
+            if (claimed.getBlock() instanceof FurnaceEngineBlock) return claimed;
+        }
+        return FurnaceEngineBlock.findEngine(be.getBlockState(), level, be.getBlockPos());
     }
 
     // Must be applied before any scaling, or the scale would shrink the offset along with it.

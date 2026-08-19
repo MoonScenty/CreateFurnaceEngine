@@ -38,7 +38,7 @@ public final class FurnaceEngineScenes {
         Selection furnace = util.select().position(FURNACE);
         Selection engine = util.select().position(ENGINE);
 
-        setMachineBlocks(scene, false, false);
+        setMachineBlocks(scene, false);
         scene.world().showSection(furnace, Direction.DOWN);
         scene.idle(15);
         scene.overlay().showText(60)
@@ -118,7 +118,7 @@ public final class FurnaceEngineScenes {
     public static void operationAndHeatSink(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = prepare(builder, util, "furnace_engine_operation",
             "Power, Warm-up and Heat Sinks");
-        showMachine(scene, util, true, false);
+        showMachine(scene, util, true, true);
         Selection flywheel = util.select().position(FLYWHEEL);
 
         scene.world().setKineticSpeed(flywheel, 0);
@@ -187,18 +187,19 @@ public final class FurnaceEngineScenes {
         return scene;
     }
 
+    // withOutput is off for the scene that walks through connecting the Flywheel: that one brings
+    // the wheel in on its own beat, and revealing the same section twice stacks two copies of it.
     private static void showMachine(CreateSceneBuilder scene, SceneBuildingUtil util,
-        boolean lit, boolean heatSink) {
-        setMachineBlocks(scene, lit, heatSink);
+        boolean lit, boolean withOutput) {
+        setMachineBlocks(scene, lit);
         scene.world().showSection(util.select().position(FURNACE), Direction.DOWN);
         scene.world().showSection(util.select().position(ENGINE), Direction.DOWN);
-        scene.world().showSection(util.select().position(FLYWHEEL), Direction.DOWN);
-        if (heatSink)
-            scene.world().showSection(util.select().position(HEAT_SINK), Direction.DOWN);
+        if (withOutput)
+            scene.world().showSection(util.select().position(FLYWHEEL), Direction.DOWN);
         scene.idle(20);
     }
 
-    private static void setMachineBlocks(CreateSceneBuilder scene, boolean lit, boolean heatSink) {
+    private static void setMachineBlocks(CreateSceneBuilder scene, boolean lit) {
         BlockState furnace = Blocks.FURNACE.defaultBlockState()
             .setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH)
             .setValue(AbstractFurnaceBlock.LIT, lit);
