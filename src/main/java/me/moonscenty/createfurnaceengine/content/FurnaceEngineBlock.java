@@ -121,18 +121,21 @@ public class FurnaceEngineBlock extends FaceAttachedHorizontalDirectionalBlock
         IBE.onRemove(state, level, pos, replacement);
     }
 
-    // Traced from block/furnace_engine/head.json and clipped to the block. That model is authored
-    // upright for the FLOOR/NORTH variant, so these boxes carry the x:90 the blockstate applies to
-    // lay it on a wall facing north: (x, y, z) becomes (x, z, 16 - y).
+    // Traced from block/furnace_engine/head.json. That model is authored upright for the
+    // FLOOR/NORTH variant, so these boxes carry the x:90 the blockstate applies to lay it on a
+    // wall facing north: (x, y, z) becomes (x, z, 16 - y).
     //
     // The reference is deliberately a horizontal facing rather than the upright model. Laying an
     // upright shape down leaves four equally valid rolls to land on, and picking the wrong one
-    // mirrors the outline against a head that sits off the block axis. Between horizontal facings
-    // there is only a rotation about Y, so no such choice exists.
+    // mirrors the outline. Between horizontal facings there is only a rotation about Y, so no
+    // such choice exists.
+    //
+    // The model's particle skirt is left out on purpose: it hangs below the block and is there to
+    // colour break particles, not to be collided with.
     private static final VoxelShaper SHAPE = VoxelShaper.forHorizontal(Shapes.or(
-        Block.box(5, 1, 13, 16, 15, 16),  // mounting plate, flat against the furnace
-        Block.box(7, 3, 1, 16, 13, 13),   // body, reaching out towards the flywheel
-        Block.box(5, 4, 3, 7, 12, 11)),   // side plate
+        Block.box(1, 1, 13, 15, 15, 16),  // mounting plate, flat against the furnace
+        Block.box(6, 3, 1, 12, 13, 13),   // body, reaching out towards the flywheel
+        Block.box(3, 4, 3, 6, 12, 11)),   // side plate
         Direction.NORTH);
 
     @Override public VoxelShape getShape(BlockState state, net.minecraft.world.level.BlockGetter level,

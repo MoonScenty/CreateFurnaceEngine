@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
 
 public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation {
     // Every speed change makes Create tear the kinetic network down and rebuild it, which drags
@@ -52,6 +53,15 @@ public class FurnaceEngineBlockEntity extends SmartBlockEntity implements IHaveG
             if (level != null && !level.isClientSide) updateEngine(false);
         });
         behaviours.add(movementDirection);
+    }
+
+    // The renderer reaches one block over to cap the furnace with the lid, and that lid overhangs
+    // the furnace by a pixel on every side it covers. Left at the engine's own block, the lid
+    // would wink out as soon as that block left the frustum.
+    @Override
+    public AABB createRenderBoundingBox() {
+        BlockPos furnacePos = FurnaceEngineBlock.getFurnacePos(getBlockState(), worldPosition);
+        return super.createRenderBoundingBox().minmax(new AABB(furnacePos)).inflate(1 / 16d);
     }
 
     @Override

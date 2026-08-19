@@ -8,6 +8,7 @@ public final class ModPartialModels {
     public static final PartialModel ENGINE_PISTON = block("furnace_engine/piston");
     public static final PartialModel ENGINE_LINKAGE = block("furnace_engine/linkage");
     public static final PartialModel ENGINE_CRANK = block("furnace_engine/crank");
+    public static final PartialModel ENGINE_LID = block("furnace_engine/lid");
 
     private ModPartialModels() {}
 

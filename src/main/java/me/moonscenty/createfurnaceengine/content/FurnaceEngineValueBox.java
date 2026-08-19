@@ -26,16 +26,7 @@ public class FurnaceEngineValueBox extends ValueBoxTransform.Sided {
      * it decides how far the box floats off the head; Z runs along the direction the engine
      * extends. Nudge this to follow the head model.
      */
-    private static final Vec3 OFFSET = VecHelper.voxelSpace(8, 14.5, 9);
-
-    /**
-     * How far the head model sits off the block axis, in voxels. The whole assembly is shifted
-     * this way so the piston, linkage and crank line up with the rim of a flywheel that was
-     * itself pushed the other way. The box has to ride along, otherwise it orbits the block
-     * centre while the head it should be resting on is somewhere else. Keep in step with
-     * block/furnace_engine/head.json.
-     */
-    private static final double HEAD_OFFSET = 4;
+    private static final Vec3 OFFSET = VecHelper.voxelSpace(8, 12.5, 9);
 
     @Override
     protected boolean isSideActive(BlockState state, Direction side) {
@@ -56,13 +47,7 @@ public class FurnaceEngineValueBox extends ValueBoxTransform.Sided {
         Vec3 local = VecHelper.rotateCentered(OFFSET, roll(facing, getSide()), Axis.Z);
         // Engines only mount on a furnace's side faces, so the vertical angle is always zero and
         // the X rotation Create applies for up/down facings is not needed here.
-        local = VecHelper.rotateCentered(local, AngleHelper.horizontalAngle(facing), Axis.Y);
-
-        // Slide across to the head, which shares its flank with the crank.
-        Direction lateral = FurnaceEngineBlock.getCrankSide(state);
-        if (lateral == null)
-            return local;
-        return local.add(Vec3.atLowerCornerOf(lateral.getNormal()).scale(HEAD_OFFSET / 16));
+        return VecHelper.rotateCentered(local, AngleHelper.horizontalAngle(facing), Axis.Y);
     }
 
     @Override
